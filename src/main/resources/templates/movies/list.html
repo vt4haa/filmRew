@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Фильмы')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+        <div>
+            <h1 class="h3 mb-1">Фильмы</h1>
+            <p class="text-muted mb-0">Основная таблица каталога — Movies</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a class="btn btn-outline-secondary" th:href="@{/actors}">Актёры</a>
+            <a sec:authorize="hasAnyRole('USER','ADMIN')" class="btn btn-accent" th:href="@{/movies/new}">
+                + Добавить фильм
+            </a>
+        </div>
+    </div>
+
+    <div class="alert alert-warning" sec:authorize="hasRole('READ_ONLY')">
+        Роль «Только чтение»: добавление, изменение и удаление фильмов недоступны.
+    </div>
+    <div class="alert alert-info" sec:authorize="hasRole('USER')">
+        Вам отображаются только фильмы, созданные вашей учётной записью.
+    </div>
+
+    <div class="card">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Название</th>
+                        <th>Жанр</th>
+                        <th>Год</th>
+                        <th>Бюджет, ₽</th>
+                        <th>Сборы, ₽</th>
+                        <th>Владелец</th>
+                        <th class="text-end">Действия</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="movie, stat : ${movies}">
+                        <td th:text="${stat.count}">1</td>
+                        <td class="fw-semibold" th:text="${movie.title}">Название</td>
+                        <td th:text="${movie.genre}">Жанр</td>
+                        <td th:text="${movie.releaseYear}">2024</td>
+                        <td th:text="${#numbers.formatDecimal(movie.budget, 1, 'WHITESPACE', 2, 'COMMA')}">0</td>
+                        <td th:text="${#numbers.formatDecimal(movie.boxOffice, 1, 'WHITESPACE', 2, 'COMMA')}">0</td>
+                        <td th:text="${movie.owner.username}">user</td>
+                        <td class="text-end text-nowrap">
+                            <a class="btn btn-sm btn-outline-dark"
+                               th:href="@{/movies/{id}(id=${movie.id})}">Просмотр</a>
+                            <a sec:authorize="hasAnyRole('USER','ADMIN')" class="btn btn-sm btn-outline-primary"
+                               th:href="@{/movies/{id}/edit(id=${movie.id})}">Изменить</a>
+                            <form sec:authorize="hasAnyRole('USER','ADMIN')" class="d-inline"
+                                  th:action="@{/movies/{id}/delete(id=${movie.id})}" method="post"
+                                  onsubmit="return confirm('Удалить фильм и связанных с ним актёров?');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Удалить</button>
+                            </form>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(movies)}">
+                        <td colspan="8" class="text-center text-muted py-4">Фильмы не найдены</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

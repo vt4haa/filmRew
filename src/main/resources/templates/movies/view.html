@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Фильм')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+        <div>
+            <h1 class="h3 mb-1" th:text="${movie.title}">Название</h1>
+            <p class="text-muted mb-0">
+                <span th:text="${movie.genre}">Жанр</span> ·
+                <span th:text="${movie.releaseYear}">2024</span> ·
+                владелец: <span th:text="${movie.owner.username}">user</span>
+            </p>
+        </div>
+        <div class="d-flex gap-2">
+            <a class="btn btn-outline-secondary" th:href="@{/movies}">К списку</a>
+            <a sec:authorize="hasAnyRole('USER','ADMIN')" class="btn btn-accent"
+               th:href="@{/movies/{id}/edit(id=${movie.id})}">Изменить</a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="card">
+                <div class="card-header">Финансовые показатели</div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-5">Бюджет</dt>
+                        <dd class="col-sm-7" th:text="${#numbers.formatDecimal(movie.budget, 1, 'WHITESPACE', 2, 'COMMA')} + ' ₽'">0</dd>
+                        <dt class="col-sm-5">Кассовые сборы</dt>
+                        <dd class="col-sm-7" th:text="${#numbers.formatDecimal(movie.boxOffice, 1, 'WHITESPACE', 2, 'COMMA')} + ' ₽'">0</dd>
+                        <dt class="col-sm-5">Прибыль (без маркетинга)</dt>
+                        <dd class="col-sm-7 fw-semibold"
+                            th:text="${#numbers.formatDecimal(movie.boxOffice - movie.budget, 1, 'WHITESPACE', 2, 'COMMA')} + ' ₽'">0</dd>
+                    </dl>
+                </div>
+            </div>
+
+            <div class="card mt-4">
+                <div class="card-header">Характеристики</div>
+                <div class="card-body">
+                    <dl class="row mb-0" th:if="${movie.details != null}">
+                        <dt class="col-sm-5">Длительность</dt>
+                        <dd class="col-sm-7"
+                            th:text="${movie.details.durationMinutes != null ? movie.details.durationMinutes + ' мин' : '—'}">—</dd>
+                        <dt class="col-sm-5">Рейтинг</dt>
+                        <dd class="col-sm-7">
+                            <span class="movie-rating"
+                                  th:text="${movie.details.rating != null ? movie.details.rating + ' / 10' : '—'}">—</span>
+                        </dd>
+                        <dt class="col-sm-5">Студия</dt>
+                        <dd class="col-sm-7"
+                            th:text="${movie.details.studio != null ? movie.details.studio : '—'}">—</dd>
+                        <dt class="col-sm-5">Описание</dt>
+                        <dd class="col-sm-7"
+                            th:text="${movie.details.synopsis != null ? movie.details.synopsis : '—'}">—</dd>
+                    </dl>
+                    <p class="text-muted mb-0" th:if="${movie.details == null}">Характеристики не заполнены</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>Актёры фильма</span>
+                    <a sec:authorize="hasAnyRole('USER','ADMIN')" class="btn btn-sm btn-outline-primary"
+                       th:href="@{/actors/new}">Добавить</a>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center"
+                            th:each="actor : ${actors}">
+                            <span>
+                                <span class="fw-semibold" th:text="${actor.fullName}">Актёр</span>
+                                <span class="text-muted small d-block" th:text="${actor.country}">Страна</span>
+                            </span>
+                            <span class="text-muted small"
+                                  th:text="${#numbers.formatDecimal(actor.fee, 1, 'WHITESPACE', 2, 'COMMA')} + ' ₽'">0</span>
+                        </li>
+                        <li class="list-group-item text-muted" th:if="${#lists.isEmpty(actors)}">
+                            Для этого фильма актёры не добавлены
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card mt-4">
+                <div class="card-body">
+                    <h2 class="h6">Расчёт прибыли</h2>
+                    <p class="text-muted small">Учтите маркетинговые расходы и рентабельность фильма.</p>
+                    <a class="btn btn-outline-dark w-100" th:href="@{/calculator}">Открыть калькулятор</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

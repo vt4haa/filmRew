@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Пользователи')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container py-4">
+    <div class="mb-4">
+        <h1 class="h3 mb-1">Пользователи и роли</h1>
+        <p class="text-muted mb-0">
+            Доступно администратору. При регистрации пользователь получает роль READ_ONLY,
+            здесь можно назначить USER или ADMIN.
+        </p>
+    </div>
+
+    <div class="alert alert-warning" th:if="${param.self}">
+        Нельзя изменить роль собственной учётной записи — это может привести к потере доступа администратора.
+    </div>
+
+    <div class="card">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Логин</th>
+                        <th>Имя</th>
+                        <th>Дата регистрации</th>
+                        <th>Текущая роль</th>
+                        <th style="min-width: 280px;">Назначить роль</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="user, stat : ${users}">
+                        <td th:text="${stat.count}">1</td>
+                        <td class="fw-semibold" th:text="${user.username}">user</td>
+                        <td th:text="${user.fullName}">Имя</td>
+                        <td class="text-nowrap"
+                            th:text="${#temporals.format(user.createdAt, 'dd.MM.yyyy HH:mm')}">01.01.2026</td>
+                        <td>
+                            <span class="badge badge-role"
+                                  th:classappend="${user.role.name() == 'ADMIN' ? 'text-bg-danger' : (user.role.name() == 'USER' ? 'text-bg-primary' : 'text-bg-secondary')}"
+                                  th:text="${user.role.title}">Роль</span>
+                        </td>
+                        <td>
+                            <span th:if="${currentUser != null and user.id == currentUser.id}"
+                                  class="text-muted small">Текущая учётная запись</span>
+                            <form th:if="${currentUser == null or user.id != currentUser.id}"
+                                  th:action="@{/users/{id}/role(id=${user.id})}" method="post"
+                                  class="d-flex gap-2"
+                                  onsubmit="return confirm('Изменить роль пользователя?');">
+                                <select name="role" class="form-select form-select-sm">
+                                    <option th:each="role : ${roles}" th:value="${role.name()}"
+                                            th:text="${role.title}"
+                                            th:selected="${role == user.role}">Роль</option>
+                                </select>
+                                <button type="submit" class="btn btn-sm btn-outline-primary text-nowrap">
+                                    Сохранить
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

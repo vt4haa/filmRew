@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Главная')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container py-4">
+    <section class="hero mb-4">
+        <h1 class="display-5 fw-bold mb-3">Каталог фильмов</h1>
+        <p class="lead mb-3">
+            Веб-приложение для учёта фильмов и актёров: хранение карточек, расчёт прибыли,
+            разграничение прав доступа.
+        </p>
+        <div sec:authorize="isAuthenticated()" class="d-flex flex-wrap gap-2">
+            <a class="btn btn-accent" th:href="@{/movies}">Перейти к фильмам</a>
+            <a class="btn btn-outline-light" th:href="@{/calculator}">Рассчитать прибыль</a>
+        </div>
+        <div sec:authorize="!isAuthenticated()" class="d-flex flex-wrap gap-2">
+            <a class="btn btn-accent" th:href="@{/login}">Войти в систему</a>
+            <a class="btn btn-outline-light" th:href="@{/register}">Зарегистрироваться</a>
+        </div>
+    </section>
+
+    <div class="alert alert-info" sec:authorize="hasRole('READ_ONLY')">
+        Вам назначена роль <strong>«Только чтение»</strong>. Данные доступны для просмотра,
+        но создание и изменение записей запрещено. Роль может изменить администратор.
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="text-muted text-uppercase small">Доступно фильмов</div>
+                    <div class="stat-number" th:text="${moviesCount}">0</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="text-muted text-uppercase small">Доступно актёров</div>
+                    <div class="stat-number" th:text="${actorsCount}">0</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="text-muted text-uppercase small">Ваша роль</div>
+                    <div class="stat-number" style="font-size:1.5rem;"
+                         th:text="${currentUser != null ? currentUser.role.title : 'Гость'}">Гость</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span>Фильмы в каталоге</span>
+            <a class="btn btn-outline-secondary btn-sm" th:href="@{/movies}">Все фильмы</a>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                    <tr>
+                        <th>Название</th>
+                        <th>Жанр</th>
+                        <th>Год</th>
+                        <th>Бюджет, ₽</th>
+                        <th>Сборы, ₽</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="movie : ${movies}">
+                        <td class="fw-semibold" th:text="${movie.title}">Название</td>
+                        <td th:text="${movie.genre}">Жанр</td>
+                        <td th:text="${movie.releaseYear}">2024</td>
+                        <td th:text="${#numbers.formatDecimal(movie.budget, 1, 'WHITESPACE', 2, 'COMMA')}">0</td>
+                        <td th:text="${#numbers.formatDecimal(movie.boxOffice, 1, 'WHITESPACE', 2, 'COMMA')}">0</td>
+                        <td class="text-end">
+                            <a class="btn btn-sm btn-outline-dark" th:href="@{/movies/{id}(id=${movie.id})}">Подробнее</a>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(movies)}">
+                        <td colspan="6" class="text-center text-muted py-4">Записи отсутствуют</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
